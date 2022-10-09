@@ -1,6 +1,8 @@
 package imaalum
 
 import (
+	"PassGo/dialog"
+	_ "PassGo/dialog"
 	_ "PassGo/model/user"
 	userstruct "PassGo/model/user"
 	"encoding/base64"
@@ -12,8 +14,6 @@ import (
 	"net/url"
 	"os"
 	"sync"
-	"syscall"
-	"unsafe"
 )
 
 type ImaalumClient struct {
@@ -82,13 +82,14 @@ func GetGeneralExamTimeTable(ws *sync.WaitGroup, client ImaalumClient) {
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
-			MessageBoxPlain("ERROR", err.Error())
+			dialog.XPlatMessageBox("ERROR", err.Error())
 			os.Exit(1)
 		}
 		_ = os.WriteFile("timetable.pdf", bodyBytes, 0644)
 
-		MessageBoxPlain("Done", "course_timetable Downloaded")
+		dialog.XPlatMessageBox("Done", "course_timetable Downloaded")
 		ws.Done()
+
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
@@ -99,13 +100,13 @@ func GetConfimationSlip(ws *sync.WaitGroup, client ImaalumClient) {
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
-			MessageBoxPlain("ERROR", err.Error())
+			dialog.XPlatMessageBox("ERROR", err.Error())
 			os.Exit(1)
 		}
 
 		_ = os.WriteFile("cs.html", bodyBytes, 0644)
 
-		MessageBoxPlain("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Download Complete")
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
@@ -116,33 +117,14 @@ func GetFinance(ws *sync.WaitGroup, client ImaalumClient) {
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
-			MessageBoxPlain("ERROR", err.Error())
+			dialog.XPlatMessageBox("ERROR", err.Error())
 			os.Exit(1)
 		}
 		_ = os.WriteFile("Finance.pdf", bodyBytes, 0644)
 
-		MessageBoxPlain("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Download Complete")
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
 	ws.Done()
-}
-
-func MessageBox(hwnd uintptr, caption, title string, flags uint) int {
-	ret, _, _ := syscall.NewLazyDLL("user32.dll").NewProc("MessageBoxW").Call(
-		uintptr(hwnd),
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(caption))),
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))),
-		uintptr(flags))
-
-	return int(ret)
-}
-
-// MessageBoxPlain of Win32 API.
-func MessageBoxPlain(title, caption string) int {
-	const (
-		NULL  = 0
-		MB_OK = 0
-	)
-	return MessageBox(NULL, caption, title, MB_OK)
 }

@@ -6,8 +6,8 @@ TODO: Encrypt Password
 */
 
 import (
+	"PassGo/dialog"
 	imaalum "PassGo/imaalum"
-	_ "PassGo/model/user"
 	userstruct "PassGo/model/user"
 	"crypto/tls"
 	"encoding/base64"
@@ -49,6 +49,7 @@ AUTOMATE LOGIN TO IIUM-STUDENT WITH 2 EASY STEPS
 	case 3:
 		logout_network()
 	case 4:
+		dialog.XPlatMessageBox("TEST", "TEST")
 		var client = imaalum.Imaalum_login()
 		ws.Add(3)
 		go imaalum.GetFinance(ws, client)
@@ -94,9 +95,9 @@ func logout_network() {
 	client := &http.Client{Transport: transCfg}
 	_, err := client.Get("https://captiveportalmahallahgombak.iium.edu.my/auth/logout.html")
 	if err != nil {
-		MessageBoxPlain("ERROR", "UNABLE TO LOGOUT (I GUESS)")
+		dialog.XPlatMessageBox("ERROR", "UNABLE TO LOGOUT (I GUESS)")
 	}
-	MessageBoxPlain("SUCCESS", "YOU ARE LOGGED OUT OF IIUM-STUDENT")
+	dialog.XPlatMessageBox("SUCCESS", "YOU ARE LOGGED OUT OF IIUM-STUDENT")
 
 }
 func connect_network() {
@@ -122,13 +123,13 @@ func connect_network() {
 	resp, err := client.PostForm("https://captiveportalmahallahgombak.iium.edu.my/cgi-bin/login", formVal)
 
 	if err != nil {
-		MessageBoxPlain("ERROR", err.Error())
+		dialog.XPlatMessageBox("ERROR", err.Error())
 		log.Fatal(err)
 	}
 	var res map[string]interface{}
 
 	json.NewDecoder(resp.Body).Decode(&res)
-	MessageBoxPlain("SUCCESS", "You are now connected to IIUM-Student")
+	dialog.XPlatMessageBox("SUCCESS", "You are now connected to IIUM-Student")
 	fmt.Println(res)
 
 }
