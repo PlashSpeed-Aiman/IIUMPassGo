@@ -15,7 +15,7 @@ Feel free to add to this app
 
 ## Instructions
 
-Clone the repo, and change directory to repo directory, and run the command **go build**
+Clone the repo, and change directory to repo directory, run *go get*, then run the command **go build**
 
 ## Compatibility
 
