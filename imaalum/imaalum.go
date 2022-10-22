@@ -87,8 +87,7 @@ func GetGeneralExamTimeTable(ws *sync.WaitGroup, client ImaalumClient) {
 		}
 		_ = os.WriteFile("timetable.pdf", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "course_timetable Downloaded")
-		ws.Done()
+		dialog.XPlatMessageBox("Done", "Exam Timetable Downloaded")
 
 	}
 
@@ -106,14 +105,17 @@ func GetConfimationSlip(ws *sync.WaitGroup, client ImaalumClient) {
 
 		_ = os.WriteFile("cs.html", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Confirmation Slip download complete")
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
 	ws.Done()
 }
 func GetFinance(ws *sync.WaitGroup, client ImaalumClient) {
-	response, _ := client.client.Get("https://imaluum.iium.edu.my/MyFinancial")
+	response, err := client.client.Get("https://imaluum.iium.edu.my/MyFinancial")
+	if err != nil {
+		dialog.XPlatMessageBox("ERROR", err.Error())
+	}
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
@@ -122,7 +124,10 @@ func GetFinance(ws *sync.WaitGroup, client ImaalumClient) {
 		}
 		_ = os.WriteFile("Finance.pdf", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Finance.pdf download complete")
+		ws.Done()
+	} else {
+		dialog.XPlatMessageBox("ERROR", response.Status)
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")

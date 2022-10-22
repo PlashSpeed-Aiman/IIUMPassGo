@@ -49,7 +49,6 @@ AUTOMATE LOGIN TO IIUM-STUDENT WITH 2 EASY STEPS
 	case 3:
 		logout_network()
 	case 4:
-		dialog.XPlatMessageBox("TEST", "TEST")
 		var client = imaalum.Imaalum_login()
 		ws.Add(3)
 		go imaalum.GetFinance(ws, client)
