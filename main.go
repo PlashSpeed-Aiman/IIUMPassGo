@@ -13,6 +13,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -20,7 +21,6 @@ import (
 	"os"
 	"sync"
 	"syscall"
-	"unsafe"
 
 	"golang.org/x/term"
 )
@@ -35,34 +35,80 @@ AUTOMATE LOGIN TO IIUM-STUDENT WITH 2 EASY STEPS
 ***CREDENTIALS ARE SAVED IN YOUR PC***
 	`)
 	ws := new(sync.WaitGroup)
-	fmt.Println("Select Function\n1.Store Creds\n2.Connect To Network\n3.Logout\n4.Login To iMaalum")
+	fmt.Println("Select Function\n1.Store Creds\n2.Connect To Network\n3.Logout\n4.Login To iMaalum\n5.Results")
 	var user_input int = 0
 	_, err := fmt.Scan(&user_input)
 	if err != nil {
 		log.Fatal(err)
 	}
-	switch user_input {
-	case 1:
-		store_pass()
-	case 2:
-		connect_network()
-	case 3:
-		logout_network()
-	case 4:
-		dialog.XPlatMessageBox("TEST", "TEST")
-		var client = imaalum.Imaalum_login()
-		ws.Add(3)
-		go imaalum.GetFinance(ws, client)
-		go imaalum.GetConfimationSlip(ws, client)
-		go imaalum.GetGeneralExamTimeTable(ws, client)
-		ws.Wait()
-	}
+	eval_choice(user_input,ws)
 
 }
 
-// func read_pass() {
+func eval_choice(choice int,ws *sync.WaitGroup){
+	switch choice {
+		case 1:
+			store_pass()
+		case 2:
+			connect_network()
+		case 3:
+			logout_network()
+		case 4:
+			dialog.XPlatMessageBox("TEST", "TEST")
+			var client = imaalum.Imaalum_login()
+			ws.Add(3)
+			go imaalum.GetFinance(ws, &client)
+			go imaalum.GetConfimationSlip(ws, &client)
+			go imaalum.GetGeneralExamTimeTable(ws, &client)
+			ws.Wait()
+		case 5: 
+			checkResult()
+	}
+}
 
-// }
+func checkResult(){
+	var UserStruct userstruct.User
+	file, err := os.ReadFile("indexxx.json")
+	if err != nil {
+		log.Fatal(err)
+		panic(err)
+	}
+	
+	var session_val string = ""
+	fmt.Println("Session i.e 2021/2022")
+	_, err = fmt.Scan(&session_val)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var semester_val string = ""
+	fmt.Println("Semester")
+	_, err = fmt.Scan(&semester_val)
+	if err != nil {
+		log.Fatal(err)
+	}
+	json.Unmarshal(file, &UserStruct)
+	decodeUser, _ := base64.StdEncoding.DecodeString(UserStruct.User)
+	decodePass, _ := base64.StdEncoding.DecodeString(UserStruct.Password)
+	form_val := url.Values{
+		"mat_no" : {string(decodeUser)},
+		"pin_no" : {string(decodePass)},
+		"sessi"  : {session_val},
+		"semester" : {semester_val},
+		"login" :{"Login"},
+	}
+	resp,err := http.PostForm("https://myapps.iium.edu.my/anrapps/viewResult.php", form_val)
+	if resp.StatusCode == 200 {
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			dialog.XPlatMessageBox("ERROR", err.Error())
+			os.Exit(1)
+		}
+
+		_ = os.WriteFile("result.html", bodyBytes, 0644)
+
+		dialog.XPlatMessageBox("Done", "Download Complete")
+	}
+}
 
 func store_pass() {
 	userVal := ""
@@ -89,6 +135,7 @@ func store_pass() {
 	}
 }
 func logout_network() {
+
 	transCfg := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore expired SSL certificates
 	}
@@ -96,16 +143,20 @@ func logout_network() {
 	_, err := client.Get("https://captiveportalmahallahgombak.iium.edu.my/auth/logout.html")
 	if err != nil {
 		dialog.XPlatMessageBox("ERROR", "UNABLE TO LOGOUT (I GUESS)")
+		panic(err)
 	}
 	dialog.XPlatMessageBox("SUCCESS", "YOU ARE LOGGED OUT OF IIUM-STUDENT")
 
 }
 func connect_network() {
+	var UserStruct userstruct.User
 	file, err := os.ReadFile("indexxx.json")
 	if err != nil {
 		log.Fatal(err)
+		panic(err)
+
 	}
-	var UserStruct userstruct.User
+
 	json.Unmarshal(file, &UserStruct)
 	decodeUser, _ := base64.StdEncoding.DecodeString(UserStruct.User)
 	decodePass, _ := base64.StdEncoding.DecodeString(UserStruct.Password)
@@ -120,11 +171,13 @@ func connect_network() {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore expired SSL certificates
 	}
 	client := &http.Client{Transport: transCfg}
-	resp, err := client.PostForm("https://captiveportalmahallahgombak.iium.edu.my/cgi-bin/login", formVal)
 
+	resp, err := client.PostForm("https://captiveportalmahallahgombak.iium.edu.my/cgi-bin/login", formVal)
+	formVal = nil
 	if err != nil {
 		dialog.XPlatMessageBox("ERROR", err.Error())
 		log.Fatal(err)
+		panic(err)
 	}
 	var res map[string]interface{}
 
@@ -135,21 +188,3 @@ func connect_network() {
 }
 
 // MessageBox of Win32 API.
-func MessageBox(hwnd uintptr, caption, title string, flags uint) int {
-	ret, _, _ := syscall.NewLazyDLL("user32.dll").NewProc("MessageBoxW").Call(
-		uintptr(hwnd),
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(caption))),
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(title))),
-		uintptr(flags))
-
-	return int(ret)
-}
-
-// MessageBoxPlain of Win32 API.
-func MessageBoxPlain(title, caption string) int {
-	const (
-		NULL  = 0
-		MB_OK = 0
-	)
-	return MessageBox(NULL, caption, title, MB_OK)
-}

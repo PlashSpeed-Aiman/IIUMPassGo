@@ -7,6 +7,7 @@ import (
 	userstruct "PassGo/model/user"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -77,7 +78,7 @@ func Imaalum_login() ImaalumClient {
 	}
 	return MClient
 }
-func GetGeneralExamTimeTable(ws *sync.WaitGroup, client ImaalumClient) {
+func GetGeneralExamTimeTable(ws *sync.WaitGroup, client *ImaalumClient) {
 	response, _ := client.client.Get("https://imaluum.iium.edu.my/MyAcademic/course_timetable")
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
@@ -95,8 +96,20 @@ func GetGeneralExamTimeTable(ws *sync.WaitGroup, client ImaalumClient) {
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
 	ws.Done()
 }
-func GetConfimationSlip(ws *sync.WaitGroup, client ImaalumClient) {
-	response, _ := client.client.Get("https://imaluum.iium.edu.my/confirmationslip?ses=2021/2022&sem=1")
+func GetConfimationSlip(ws *sync.WaitGroup, client *ImaalumClient) {
+	var session_val string = ""
+	fmt.Println("Session i.e 2021/2022")
+	_, err := fmt.Scan(&session_val)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var semester_val string = ""
+	fmt.Println("Semester")
+	_, err = fmt.Scan(&semester_val)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response, _ := client.client.Get(fmt.Sprintf("https://imaluum.iium.edu.my/confirmationslip?ses=%s&sem=%s",session_val,semester_val))
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
@@ -112,7 +125,7 @@ func GetConfimationSlip(ws *sync.WaitGroup, client ImaalumClient) {
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
 	ws.Done()
 }
-func GetFinance(ws *sync.WaitGroup, client ImaalumClient) {
+func GetFinance(ws *sync.WaitGroup, client *ImaalumClient) {
 	response, _ := client.client.Get("https://imaluum.iium.edu.my/MyFinancial")
 	if response.StatusCode == 200 {
 		bodyBytes, err := io.ReadAll(response.Body)
@@ -122,7 +135,7 @@ func GetFinance(ws *sync.WaitGroup, client ImaalumClient) {
 		}
 		_ = os.WriteFile("Finance.pdf", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Finance.PDF Download Complete")
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")
