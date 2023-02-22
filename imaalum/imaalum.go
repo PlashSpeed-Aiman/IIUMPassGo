@@ -88,8 +88,7 @@ func GetGeneralExamTimeTable(ws *sync.WaitGroup, client *ImaalumClient) {
 		}
 		_ = os.WriteFile("timetable.pdf", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "course_timetable Downloaded")
-		ws.Done()
+		dialog.XPlatMessageBox("Done", "Exam Timetable Downloaded")
 
 	}
 
@@ -119,7 +118,7 @@ func GetConfimationSlip(ws *sync.WaitGroup, client *ImaalumClient) {
 
 		_ = os.WriteFile("cs.html", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Confirmation Slip download complete")
 	}
 
 	client.client.Get("https://cas.iium.edu.my:8448/cas/logout?service=http://imaluum.iium.edu.my/")

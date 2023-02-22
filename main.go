@@ -187,4 +187,7 @@ func connect_network() {
 
 }
 
+<<<<<<< HEAD
 // MessageBox of Win32 API.
+=======
+>>>>>>> 9e3846fd639fc98ebf62c38d0215ee126184cc39
