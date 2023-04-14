@@ -106,7 +106,7 @@ func checkResult(){
 
 		_ = os.WriteFile("result.html", bodyBytes, 0644)
 
-		dialog.XPlatMessageBox("Done", "Download Complete")
+		dialog.XPlatMessageBox("Done", "Download Result Complete")
 	}
 }
 
@@ -187,7 +187,4 @@ func connect_network() {
 
 }
 
-<<<<<<< HEAD
 // MessageBox of Win32 API.
-=======
->>>>>>> 9e3846fd639fc98ebf62c38d0215ee126184cc39
